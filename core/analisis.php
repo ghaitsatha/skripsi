@@ -201,13 +201,13 @@ function hitung_jarak($x1, $y1){
 	return $jarak;
 }
 
-function bagi_cluster($jarak1, $jarak2){
-	$n = count($jarak1);
+function bagi_cluster($euclidean_distance){
+	$n = count($euclidean_distance['jarak1']);
 	$c1 = array();
 	$c2 = array();
 
 	for($i=0;$i<$n;$i++){
-		if($jarak1[$i] < $jarak2[$i])
+		if($euclidean_distance['jarak1'][$i] < $euclidean_distance['jarak2'][$i])
 			$c1[] = $i;
 		else
 			$c2[] = $i;
@@ -216,7 +216,7 @@ function bagi_cluster($jarak1, $jarak2){
 	return array("c1" => $c1, "c2" => $c2);
 }
 
-function metode_kmeans($tfidf, $kata, $debug=true){
+function hitung_euclidean_distance($tfidf, $kata, $debug=true){
 	
 	foreach ($tfidf as $key => $value) {
 		for ($i=0; $i < count($value); $i++) { 
@@ -258,6 +258,7 @@ function metode_kmeans($tfidf, $kata, $debug=true){
 	
 	// looping dokumen list
 	$euclidean_distance = [];		
+	// menghitung jarak dari c1
 	foreach ($dokumenList as $id_doc => $value) {
 		$temp = 0;	
 		foreach ($value as $term => $nilainya) {
@@ -290,8 +291,45 @@ function metode_kmeans($tfidf, $kata, $debug=true){
 				$temp += pow($dokumenList[$c1][$term1],2);
 			}
 		}
-		$euclidean_distance[$id_doc] = sqrt($temp);		
+		$euclidean_distance['jarak1'][$id_doc] = sqrt($temp);		
 	}
+
+	// menghitung jarak dari c2
+	foreach ($dokumenList as $id_doc => $value) {
+		$temp = 0;	
+		foreach ($value as $term => $nilainya) {
+			// jarak dari c2
+			// print_r([$id_doc => [$term => $nilainya]]);
+			if($id_doc == $c2){
+				if(array_key_exists($term, $dokumenList[$c2])){
+					// print_r([$id_doc => ['sama dengan centroid' => [$term => $nilainya-$nilainya]]]);
+					$temp +=($nilainya-$nilainya);
+				}
+
+			}
+			else{
+				// // kalau sama
+				if(array_key_exists($term, $dokumenList[$c2])){
+					print_r([$id_doc.'-'.$c2 => ['termnya sama' => [$term => pow(($nilainya - $dokumenList[$c2][$term]),2)]]]);
+					$temp += pow(($nilainya - $dokumenList[$c2][$term]),2);
+				}
+				// // kalau di doclist ada, di pusat tidak ada1
+				else if(!array_key_exists($term, $dokumenList[$c2])){
+					print_r([$id_doc.'-'.$c2 => ['doclist ada' => [$term => pow($nilainya,2)]]]);
+					$temp += pow($nilainya,2);
+				}
+			}
+		}
+		// // kalau di pusat ada, di doclist tidak ada
+		foreach ($dokumenList[$c2] as $term1 => $value1) {
+			if(!array_key_exists($term1, $dokumenList[$id_doc])){
+				print_r([$id_doc.'-'.$c2 => ['pusat ada' => [$term1 => pow($dokumenList[$c2][$term1],2)]]]);
+				$temp += pow($dokumenList[$c2][$term1],2);
+			}
+		}
+		$euclidean_distance['jarak2'][$id_doc] = sqrt($temp);		
+	}
+
 	
 
 
@@ -303,6 +341,8 @@ function metode_kmeans($tfidf, $kata, $debug=true){
 		print_r(['dokumenList' => $dokumenList]);
 		print_r(['euclidean distance' => $euclidean_distance]);
 	}
+
+	return $euclidean_distance;
 }
 
 function means($index, $bobot){
