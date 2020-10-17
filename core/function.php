@@ -64,34 +64,39 @@ function single_process($s, $debug = true){
 			print_r($tfidf);
 		}
 
+
+		// panggil metode kmeans buatan sendiri
+		metode_kmeans($tfidf, $kata);
+		die();
 		
 
-		$bobot = hitung_bobot($tf, $idf);
+		// kalau pakai euclideance distance, tidak perlu hitung bobot.
+		// $bobot = hitung_bobot($tf, $idf);
 
 		//Masuk ke metode K-Means
-		$pusat1 = $bobot[0];
-		$jarak1 = hitung_jarak($pusat1, $bobot);
-		$jarak_max = array_keys($jarak1, max($jarak1));
+		// $pusat1 = $bobot[0];
+		// $jarak1 = hitung_jarak($pusat1, $bobot);
+		// $jarak_max = array_keys($jarak1, max($jarak1));
 
-		$pusat2 = $bobot[$jarak_max[0]];
-		$jarak2 = hitung_jarak($pusat2, $bobot);
+		// $pusat2 = $bobot[$jarak_max[0]];
+		// $jarak2 = hitung_jarak($pusat2, $bobot);
 
-		$bagi = bagi_cluster($jarak1, $jarak2);
+		// $bagi = bagi_cluster($jarak1, $jarak2);
 
-		$c1_temp = $bagi["c1"];
-		$c2_temp = $bagi["c2"];
+		// $c1_temp = $bagi["c1"];
+		// $c2_temp = $bagi["c2"];
 
-		if ($debug == true){
-			print_r([
-				'pusat1' => $pusat1,
-				'jarak1' => $jarak1,
-				'jarak_max' => $jarak_max,
-				'pusat2' => $pusat2,
-				'jarak2' => $jarak2, 
-			]);
-			var_dump('---------- CLUSTER -----------');
-			print_r($bagi);
-		}
+		// if ($debug == true){
+		// 	print_r([
+		// 		'pusat1' => $pusat1,
+		// 		'jarak1' => $jarak1,
+		// 		'jarak_max' => $jarak_max,
+		// 		'pusat2' => $pusat2,
+		// 		'jarak2' => $jarak2, 
+		// 	]);
+		// 	var_dump('---------- CLUSTER -----------');
+		// 	print_r($bagi);
+		// }
 		//selesai perhitungan pertama
 		$max_iterasi = 500;
 
