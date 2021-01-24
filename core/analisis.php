@@ -1,5 +1,5 @@
 <?php
-function stem($txt, $debug=true){
+function stem($txt, $debug=false){
 	// case folding html tag removal
 	$input = filter_var(strtolower($txt), FILTER_SANITIZE_STRING);
 	// tokenizing
@@ -54,7 +54,7 @@ function get_data_latih($arr, $debug=true){
 	}
 	$addQuery = substr($addQuery, 0, -4);
 	// $get_data_latih = $db->query("SELECT * FROM skripsi_komentar WHERE $addQuery");
-	$get_data_latih = $db->query("SELECT * FROM tester");
+	$get_data_latih = $db->query("SELECT * FROM sms");
 
 	$n = 1;
 	// 0 itu disediakan untuk query
@@ -250,8 +250,9 @@ function hitung_euclidean_distance($tfidf, $kata, $debug=true){
 	// perhitungan euclidean distance
 	// menentukan dimana centroidnya
 	// sesuai contoh C1, C4
+	$last_id = mysqli_insert_id($db);
 	$c1 = 0;
-	$c2 = 3;
+	$c2 = $last_id;
 
 	// menentukan pusat di tfidf
 	$euclids = [];
@@ -360,23 +361,23 @@ function means($index, $bobot){
 
 function cari_sentimen($cluster, $sentimen, $pusat, $bobot, $debug=true){
 	//golongkan nilai sentimen yang ada di dalam cluster
-	$positif = 0;
-	$negatif = 0;
+	$spam = 0;
+	$real = 0;
 	foreach($cluster as $c){
 //		if($c <> 0){
 			if($sentimen[$c] == 1){
-				$positif++;
+				$spam++;
 			}
 			else{
-				$negatif++;
+				$real++;
 			}
 //		}
 	}
 
 	if($debug){
 		echo "
-		<span class='label label-success'>Data positif : $positif</span>
-		<span class='label label-danger'>Data negatif : $negatif</span>
+		<span class='label label-success'>Data Spam : $spam</span>
+		<span class='label label-danger'>Data Real : $real</span>
 		<br>
 		";
 	}
@@ -385,13 +386,13 @@ function cari_sentimen($cluster, $sentimen, $pusat, $bobot, $debug=true){
 
 	//Metode K-NN ditentukan di baris ini.
 	//jika ingin dijalankan secara default, hapus baris IF dibawah ini.
-	if($positif == $negatif){
+	// if($spam == $real){
 		//kalau jumlah sentimen positif dan negatifnya sama, maka sentimennya adalah data terdekat
-		foreach($cluster as $c){
-			$jarak[$c] = abs($pusat-$bobot[$c]);
-			if($debug)
-				echo "Jarak <strong>K-$c</strong> ke pusat data = ".$pusat." - ".$bobot[$c]." = <strong>".$jarak[$c]."</strong><br>";
-		}
+		// foreach($cluster as $c){
+		// 	$jarak[$c] = abs($pusat-$bobot[$c]);
+		// 	if($debug)
+		// 		echo "Jarak <strong>K-$c</strong> ke pusat data = ".$pusat." - ".$bobot[$c]." = <strong>".$jarak[$c]."</strong><br>";
+		// }
 		$jarak_min = array_keys($jarak, min($jarak));
 		$hasil = $sentimen[$jarak_min[0]];
 
@@ -404,105 +405,104 @@ function cari_sentimen($cluster, $sentimen, $pusat, $bobot, $debug=true){
 		}
 
 		if($hasil == 1)
-			$positif++;
+			$spam++;
 		else
-			$negatif++;
-	}
+			$real++;
+	// }
 
 
-	if($positif > $negatif){
-		return 1;
-	}
-	else{
-		return 0;
-	}
+	// if($positif > $negatif){
+	// 	return 1;
+	// }
+	// else{
+	// 	return 0;
+	// }
 }
 
 
-function knn($cluster, $sentimen, $pusat, $bobot, $debug=true){
-	//golongkan nilai sentimen yang ada di dalam cluster
-	$positif = 0;
-	$negatif = 0;
-	foreach($cluster as $c){
-		if($c <> 0){
-			if($sentimen[$c] == 1){
-				$positif++;
-			}
-			else{
-				$negatif++;
-			}
-		}
-	}
 
-	if($debug){
-		echo "
-		<span class='label label-success'>Data positif : $positif</span>
-		<span class='label label-danger'>Data negatif : $negatif</span>
-		<br>
-		";
-	}
+// function knn($cluster, $sentimen, $pusat, $bobot, $debug=true){
+	//golongkan nilai sentimen yang ada di dalam cluster
+	// $positif = 0;
+	// $negatif = 0;
+	// foreach($cluster as $c){
+	// 	if($c <> 0){
+	// 		if($sentimen[$c] == 1){
+	// 			$positif++;
+	// 		}
+	// 		else{
+	// 			$negatif++;
+	// 		}
+	// 	}
+	// }
+
+	// if($debug){
+	// 	echo "
+	// 	<span class='label label-success'>Data positif : $positif</span>
+	// 	<span class='label label-danger'>Data negatif : $negatif</span>
+	// 	<br>
+	// 	";
+	// }
 
 
 
 	//jalan tengah
 	//kalau selisih data positif dan negatif tidak lebih dari 6.66%, maka KNN baru dijalankan untuk mencari tetangga terdekat
 	//selebihnya, sentimen kebanyakan dalam sebuah cluster seharusnya sudah mewakili.
-	$total_coba = $positif + $negatif;
-	$selisih_coba = abs($positif - $negatif);
-	if($selisih_coba < ($total_coba / 15)){
+	// $total_coba = $positif + $negatif;
+	// $selisih_coba = abs($positif - $negatif);
+	// if($selisih_coba < ($total_coba / 15)){
 
 		//Metode K-NN ditentukan di baris ini.
-		$jarak = array();
-		foreach($cluster as $c){
+		// $jarak = array();
+		// foreach($cluster as $c){
 			//jadikan data uji sebagai pusat data
-			if($c == 0){
-				$pusat = $bobot[$c];
-				continue;
-			}
-			$jarak[$c] = abs($pusat-$bobot[$c]);
-			if($debug)
-				echo "Jarak <strong>K-$c</strong> ke pusat data = ".$pusat." - ".$bobot[$c]." = <strong>".$jarak[$c]."</strong><br>";
-		}
+		// 	if($c == 0){
+		// 		$pusat = $bobot[$c];
+		// 		continue;
+		// 	}
+		// 	$jarak[$c] = abs($pusat-$bobot[$c]);
+		// 	if($debug)
+		// 		echo "Jarak <strong>K-$c</strong> ke pusat data = ".$pusat." - ".$bobot[$c]." = <strong>".$jarak[$c]."</strong><br>";
+		// }
 
-		if(count($jarak) > 0){
+		// if(count($jarak) > 0){
 			//nggak ada data apapun di cluster tersebut
-			$jarak_min = array_keys($jarak, min($jarak));
-			$hasil = $sentimen[$jarak_min[0]];
+// 			$jarak_min = array_keys($jarak, min($jarak));
+// 			$hasil = $sentimen[$jarak_min[0]];
 
-			if($hasil==0)
-				$cl = "danger";
-			else
-				$cl = "success";
+// 			if($hasil==0)
+// 				$cl = "danger";
+// 			else
+// 				$cl = "success";
 
-			$dbug_text = "Sentimen ditentukan berdasarkan jarak terdekat yaitu di <span class='label label-$cl'>K-".$jarak_min[0]."</span><br>";
-		}
-		else{
-			$hasil = -1;
-			$dbug_text = "Tidak ada data apapun yang dapat dijadikan dasar penentuan sentimen.";
-		}
+// 			$dbug_text = "Sentimen ditentukan berdasarkan jarak terdekat yaitu di <span class='label label-$cl'>K-".$jarak_min[0]."</span><br>";
+// 		}
+// 		else{
+// 			$hasil = -1;
+// 			$dbug_text = "Tidak ada data apapun yang dapat dijadikan dasar penentuan sentimen.";
+// 		}
 
-	}
-	else{
-		if($positif > $negatif)
-			$hasil = 1;
-		else
-			$hasil = 0;
+// 	}
+// 	else{
+// 		if($positif > $negatif)
+// 			$hasil = 1;
+// 		else
+// 			$hasil = 0;
 
-		if($positif == 0 and $negatif == 0){
-			$hasil = -1;
-		}
-		$dbug_text = "Metode KNN tidak dijalankan karena mengikuti sentimen terbanyak di cluster tersebut";
-	}
-
-
-	if($debug){
-		echo $dbug_text;
-	}
-
-	return intval($hasil);
-}
+// 		if($positif == 0 and $negatif == 0){
+// 			$hasil = -1;
+// 		}
+// 		$dbug_text = "Metode KNN tidak dijalankan karena mengikuti sentimen terbanyak di cluster tersebut";
+// 	}
 
 
+// 	if($debug){
+// 		echo $dbug_text;
+// 	}
+
+// 	return intval($hasil);
+// }
 
 
 
@@ -511,19 +511,21 @@ function knn($cluster, $sentimen, $pusat, $bobot, $debug=true){
 
 
 
-function revise($id){
-	global $db;
-	$cek = $db->query("SELECT * FROM skripsi_rekap WHERE no = ".intval($id)." AND flag = 0");
 
-	if($cek->rowCount() >= 1){
-		$row = $cek->fetch();
-		if($row['sentimen'] == 0)
-			$to = 1;
-		else
-			$to = 0;
 
-		$upd = $db->query("UPDATE skripsi_rekap SET flag = 1, sentimen = $to WHERE no = ".intval($id));
-	}
+// function revise($id){
+// 	global $db;
+// 	$cek = $db->query("SELECT * FROM skripsi_rekap WHERE no = ".intval($id)." AND flag = 0");
 
-	return true;
-}
+// 	if($cek->rowCount() >= 1){
+// 		$row = $cek->fetch();
+// 		if($row['sentimen'] == 0)
+// 			$to = 1;
+// 		else
+// 			$to = 0;
+
+// 		$upd = $db->query("UPDATE skripsi_rekap SET flag = 1, sentimen = $to WHERE no = ".intval($id));
+// 	}
+
+// 	return true;
+// }

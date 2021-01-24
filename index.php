@@ -19,10 +19,13 @@
 <body>
 
 <div id="wrapper" class="container">
+	<h1 class="heading">
+		CLUSTERING PESAN SPAM
+	</h1>
 	<span class="btn btn-primary" id="refresh">
 		Refresh
 	</span>
-	<input type="text" id="analyze" placeholder="Masukkan kalimat komentar disini">
+	<input type="text" id="analyze" placeholder="Masukkan Kalimat Pesan Disini">
 	
 	<div id="hasil">
 		<img src="assets/pie.gif" class="hide">
@@ -41,7 +44,8 @@
 				$.ajax({
 					url : "api.php",
 					method : "GET",
-					data : {q : $("#analyze").val()},
+					//data : {q : $("#analyze").val()},
+					data : {teks:teks, stem:stem, label:label, predict:predict},
 					dataType : "json"
 				}).done(function(data){
 					$("img").addClass("hide");

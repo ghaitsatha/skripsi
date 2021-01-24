@@ -126,7 +126,7 @@ function single_process($s, $debug = true){
 			$outp = "Cluster 2";
 		}
 
-		$final_sentiment = knn($c_final, $sentimen, $pusat, $bobot);
+		$final_sentiment = means($c_final, $sentimen, $pusat, $bobot);
 
 		return $final_sentiment;
 
