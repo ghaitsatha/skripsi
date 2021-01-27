@@ -6,8 +6,8 @@ require_once("core/analisis.php");
 
 $out = array();
 if(isset($_GET['q'])){
-	//$sentimen = single_process($_GET['q']);
-
+	$sentimen = single_process($_GET['q']);
+	die();
 	// if($sentimen == -1){
 	// 	$out['input'] = $_GET['q'];
 	// 	$out['error'] = true;
@@ -26,9 +26,9 @@ if(isset($_GET['q'])){
 			$sv = $db->prepare("INSERT INTO sms VALUES (:teks, :stem, :label, :predict)");
 			//$sv->bindParam(":id",$_POST['id']);
 			$sv->bindParam(":teks",$_POST['teks']);
-			$sv->bindParam(":stem",$_POST['stem'])
+			$sv->bindParam(":stem",$_POST['stem']);
 			$sv->bindParam(":label",$_POST['label']);
-			$sc->bindParam(":predict",$_POST['predict'])
+			$sv->bindParam(":predict",$_POST['predict']);
 			$sv->execute();
 			$last_id = $db->lastInsertId();			
 		}
@@ -39,7 +39,7 @@ if(isset($_GET['q'])){
 
 		$out['input'] = $_GET['q'];
 		$out['error'] = false;
-		if($sentimen==1){
+		if($stem==1){
 			$msg = "spam";
 		}
 		else{
@@ -47,7 +47,7 @@ if(isset($_GET['q'])){
 		}
 
 		$out['message'] = "Pesan tersebut tergolong menjadi pesan $msg .";
-		$out['sentiment'] = $sentimen;
+		$out['sentiment'] = $stem;
 		$out['unique_id'] = $last_id;
 	}
 

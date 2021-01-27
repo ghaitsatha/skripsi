@@ -44,8 +44,8 @@
 				$.ajax({
 					url : "api.php",
 					method : "GET",
-					//data : {q : $("#analyze").val()},
-					data : {teks:teks, stem:stem, label:label, predict:predict},
+					data : {q : $("#analyze").val()},
+					//data : {teks:teks, stem:stem, label:label, predict:predict},
 					dataType : "json"
 				}).done(function(data){
 					$("img").addClass("hide");

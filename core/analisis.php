@@ -54,7 +54,7 @@ function get_data_latih($arr, $debug=true){
 	}
 	$addQuery = substr($addQuery, 0, -4);
 	// $get_data_latih = $db->query("SELECT * FROM skripsi_komentar WHERE $addQuery");
-	$get_data_latih = $db->query("SELECT * FROM sms");
+	$get_data_latih = $db->query("SELECT * FROM tester");
 
 	$n = 1;
 	// 0 itu disediakan untuk query
@@ -250,9 +250,8 @@ function hitung_euclidean_distance($tfidf, $kata, $debug=true){
 	// perhitungan euclidean distance
 	// menentukan dimana centroidnya
 	// sesuai contoh C1, C4
-	$last_id = mysqli_insert_id($db);
 	$c1 = 0;
-	$c2 = $last_id;
+	$c2 = 3;
 
 	// menentukan pusat di tfidf
 	$euclids = [];
