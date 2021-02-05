@@ -250,8 +250,8 @@ function hitung_euclidean_distance($tfidf, $kata, $debug=true){
 	// perhitungan euclidean distance
 	// menentukan dimana centroidnya
 	// sesuai contoh C1, C4
-	$c1 = 0;
-	$c2 = 3;
+	$c1 = 1;
+	$c2 = 19;
 
 	// menentukan pusat di tfidf
 	$euclids = [];
