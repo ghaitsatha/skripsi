@@ -7,6 +7,7 @@ require_once("core/analisis.php");
 $out = array();
 if(isset($_GET['q'])){
 	$sentimen = single_process($_GET['q']);
+	print_r($sentimen);
 	die();
 	// if($sentimen == -1){
 	// 	$out['input'] = $_GET['q'];

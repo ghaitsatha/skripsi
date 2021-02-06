@@ -24,7 +24,7 @@ function get_extension($filename){
 	return strtolower($exp[$n-1]);
 }
 
-function single_process($s, $debug = true){
+function single_process($s, $debug = false){
 
 	// stemming
 	$string = stem($s);
@@ -66,41 +66,73 @@ function single_process($s, $debug = true){
 
 
 		// panggil metode kmeauclidean distanceans buatan sendiri
+		// iterasi 1 disini
 		$euclidean_distance = hitung_euclidean_distance($tfidf, $kata);
-		$cluster = bagi_cluster($euclidean_distance);
-		print_r($cluster);
+		$cluster = bagi_cluster($euclidean_distance['distance']);
+		// print_r($cluster);
 
-		die();
+		// die();
 		
 
-		
+		// iterasi ke-2 dst
 		$max_iterasi = 500;
-
-		$sama = 0;
+		$c1_temp = $cluster['c1'];
+		$c2_temp = $cluster['c2'];
+		$bobot = $euclidean_distance['dokumenList'];
+		// print_r($bobot);
+		// $sama = 0;
 		for($i=0;$i<$max_iterasi;$i++){
+
+			// print_r(['c1_temp' => $c1_temp, 'bobot' => $bobot]);
+			// die();
 			$pusat1 = means($c1_temp, $bobot);
-			$jarak1 = hitung_jarak($pusat1, $bobot);
+			// print_r($pusat1);
+
+			$jarak1 = hitung_jarak($pusat1, $bobot, $c1_temp);
+			// print_r($jarak1);
+
 			$pusat2 = means($c2_temp, $bobot);
-			$jarak2 = hitung_jarak($pusat2, $bobot);
+			// print_r($pusat2);
+			$jarak2 = hitung_jarak($pusat2, $bobot, $c2_temp);
+			// print_r($jarak2);
+			// die();
 
 
-			$cluster = bagi_cluster($jarak1, $jarak2);
 
-			if(count($cluster["c1"]) == count($c1_temp)){
-				if($sama == ceil($max_iterasi/10)){
-					break;
-				}
-				else{
-					$sama++;
+			$new_euclid['jarak1'] = $jarak1;
+			$new_euclid['jarak2'] = $jarak2;
+			$clusters = bagi_cluster($new_euclid);
+
+
+
+			// if(count($clusters["c1"]) == count($c1_temp)){
+			// 	if($sama == ceil($max_iterasi/10)){
+			// 		break;
+			// 		}
+			// 	else{
+			// 		$sama++;
+			// 	}
+			// }
+			// else{
+			// 	$sama = 0;
+			// }
+
+			$sama = 0;
+			if(count($clusters["c1"]) == count($c1_temp)){
+				foreach ($c1_temp as $key => $value) {
+					if(array_key_exists($value, $c1_temp)){
+						$sama++;
+					}
 				}
 			}
-			else{
-				$sama = 0;
-			}
 
-			$c1_temp = $cluster["c1"];
-			$c2_temp = $cluster["c2"];
-			if ($debug){
+			
+
+
+
+			$c1_temp = $clusters["c1"];
+			$c2_temp = $clusters["c2"];
+			if ($debug == false){
 				var_dump('---------- ITERASI KE '.$i.' -----------');
 				print_r([
 					'pusat1' => $pusat1,
@@ -109,24 +141,43 @@ function single_process($s, $debug = true){
 					'jarak2' => $jarak2, 
 				]);
 				var_dump('---------- CLUSTER setelah ke '.$i.' -----------');
-				print_r(['c1' => $c1_temp, 'c2' => $c2_temp]);
+				print_r(['c1' => $clusters["c1"], 'c2' => $clusters["c2"]]);
 			}
+
+			if($sama == count($c1_temp)){
+				break;
+			}
+
 		}
 
-		//sampai disini perulangan berakhir
-		//cari cluster dengan value 0 ada dimana
-		if(in_array(0, $cluster["c1"])){
-			$c_final = $cluster["c1"];
-			$pusat = $pusat1;
-			$outp = "Cluster 1";
-		}
-		else{
-			$c_final = $cluster["c2"];
-			$pusat = $pusat2;
-			$outp = "Cluster 2";
-		}
 
-		$final_sentiment = means($c_final, $sentimen, $pusat, $bobot);
+		// //sampai disini perulangan berakhir
+		// //cari cluster dengan value 0 ada dimana
+		// if(in_array(0, $cluster["c1"])){
+		// 	$c_final = $cluster["c1"];
+		// 	$pusat = $pusat1;
+		// 	$outp = "Cluster 1";
+		// }
+		// else{
+		// 	$c_final = $cluster["c2"];
+		// 	$pusat = $pusat2;
+		// 	$outp = "Cluster 2";
+		// }
+
+		// $final_sentiment = means($c_final, $sentimen, $pusat, $bobot);
+
+		// print_r($final_sentiment);
+		// print_r('sdfsdfdsf');
+
+		// C1 = 0 atau spam
+		// C2 = 1 atau bukan spam
+
+		if(in_array(0, $clusters["c1"])){
+			$final_sentiment = 'spam';
+		}
+		else if(in_array(0, $clusters["c2"])){
+			$final_sentiment = 'bukan spam';
+		}
 
 		return $final_sentiment;
 

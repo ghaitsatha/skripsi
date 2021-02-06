@@ -45,7 +45,7 @@ function stopword($arr){
 	}
 }
 
-function get_data_latih($arr, $debug=true){
+function get_data_latih($arr, $debug=false){
 	global $db;
 
 	$addQuery = "";
@@ -102,7 +102,7 @@ function get_data_latih($arr, $debug=true){
 // 	return true;
 // }
 
-function create_token($data, $debug=true){
+function create_token($data, $debug=false){
 	$token = array();
 	foreach($data['item'] as $itm){
 		$token = array_merge($token, array_values($itm));
@@ -115,7 +115,7 @@ function create_token($data, $debug=true){
 	return $token;
 }
 
-function cari_tf($token, $data, $debug=true){
+function cari_tf($token, $data, $debug=false){
 	$tf = array();
 	foreach($token as $kata){
 		foreach($data as $key=>$value){
@@ -138,7 +138,7 @@ function cari_tf($token, $data, $debug=true){
 	return $tf;
 }
 
-function cari_df($tf, $debug=true){
+function cari_df($tf, $debug=false){
 	//menghitung jumlah kemunculan kata dalam dokumen
 	foreach($tf as $key=>$value){
 		$df = 0;
@@ -170,7 +170,7 @@ function hitung_tfidf($tf, $idf, $debug=false){
 	return $tf;
 }
 
-function hitung_bobot($tf, $idf, $debug=true){
+function hitung_bobot($tf, $idf, $debug=false){
 	$bobot = array();
 	foreach($idf as $key=>$value){
 		//just try
@@ -193,11 +193,48 @@ function hitung_bobot($tf, $idf, $debug=true){
 	return $bobot;
 }
 
-function hitung_jarak($x1, $y1){
-	$n = count($y1);
-	for($i=0;$i<$n;$i++){
-		$jarak[$i] = abs($x1-$y1[$i]);
+function hitung_jarak($pusat, $bobot, $c){
+	// $n = count($bobot);
+	// for($i=0;$i<$n;$i++){
+	// 	$jarak[$i] = abs($x1-$y1[$i]);
+	// }
+
+	// foreach ($c as $keyc => $id_doc) {
+		foreach ($bobot as $keyw => $valuew) {
+		$doc[$keyw] = 0;
+			// if($keyw == $keyw){
+				// kalau di pusat ada dan di bobot ada
+				foreach ($pusat as $keyp => $valuep) {
+					if(array_key_exists($keyp, $valuew)){
+						$doc[$keyw] += pow(($valuep-$valuew[$keyp]),2);
+						// print_r([$keyw => $valuep.'=='.$valuew[$keyp]]);
+					}
+				}
+				// kalau di pusat ada di bobot engga ad
+				foreach ($pusat as $keyp => $valuep) {
+					if(!array_key_exists($keyp, $valuew)){
+						$doc[$keyw] += pow(($valuep),2);
+						// print_r([$keyw => $valuep.'=='.$valuew[$keyp]]);
+					}
+				}
+				// kalau di pusat tidak ada di bobot ada
+				foreach ($valuew as $keyww => $valueww) {
+					if(!array_key_exists($keyww, $pusat)){
+						$doc[$keyw] += pow($valueww,2);
+						// print_r([$keyw => $keyww.'='.$valueww]);
+						// print_r([$keyw => $valuep.'=='.$valuew[$keyp]]);
+					}
+				}
+			// }
+		}
+	// }
+
+	foreach ($doc as $key => $value) {
+		// print_r([$key => sqrt($value)]);
+		$jarak[$key] = sqrt($value);
 	}
+
+	// print_r($doc);
 	return $jarak;
 }
 
@@ -216,7 +253,7 @@ function bagi_cluster($euclidean_distance){
 	return array("c1" => $c1, "c2" => $c2);
 }
 
-function hitung_euclidean_distance($tfidf, $kata, $debug=true){
+function hitung_euclidean_distance($tfidf, $kata, $debug=false){
 	
 	foreach ($tfidf as $key => $value) {
 		for ($i=0; $i < count($value); $i++) { 
@@ -250,8 +287,8 @@ function hitung_euclidean_distance($tfidf, $kata, $debug=true){
 	// perhitungan euclidean distance
 	// menentukan dimana centroidnya
 	// sesuai contoh C1, C4
-	$c1 = 1;
-	$c2 = 19;
+	$c1 = 0;
+	$c2 = 3;
 
 	// menentukan pusat di tfidf
 	$euclids = [];
@@ -274,12 +311,12 @@ function hitung_euclidean_distance($tfidf, $kata, $debug=true){
 			else{
 				// // kalau sama
 				if(array_key_exists($term, $dokumenList[$c1])){
-					print_r([$id_doc.'-'.$c1 => ['termnya sama' => [$term => pow(($nilainya - $dokumenList[$c1][$term]),2)]]]);
+					// print_r([$id_doc.'-'.$c1 => ['termnya sama' => [$term => pow(($nilainya - $dokumenList[$c1][$term]),2)]]]);
 					$temp += pow(($nilainya - $dokumenList[$c1][$term]),2);
 				}
 				// // kalau di doclist ada, di pusat tidak ada1
 				else if(!array_key_exists($term, $dokumenList[$c1])){
-					print_r([$id_doc.'-'.$c1 => ['doclist ada' => [$term => pow($nilainya,2)]]]);
+					// print_r([$id_doc.'-'.$c1 => ['doclist ada' => [$term => pow($nilainya,2)]]]);
 					$temp += pow($nilainya,2);
 				}
 			}
@@ -287,7 +324,7 @@ function hitung_euclidean_distance($tfidf, $kata, $debug=true){
 		// // kalau di pusat ada, di doclist tidak ada
 		foreach ($dokumenList[$c1] as $term1 => $value1) {
 			if(!array_key_exists($term1, $dokumenList[$id_doc])){
-				print_r([$id_doc.'-'.$c1 => ['pusat ada' => [$term1 => pow($dokumenList[$c1][$term1],2)]]]);
+				// print_r([$id_doc.'-'.$c1 => ['pusat ada' => [$term1 => pow($dokumenList[$c1][$term1],2)]]]);
 				$temp += pow($dokumenList[$c1][$term1],2);
 			}
 		}
@@ -310,12 +347,12 @@ function hitung_euclidean_distance($tfidf, $kata, $debug=true){
 			else{
 				// // kalau sama
 				if(array_key_exists($term, $dokumenList[$c2])){
-					print_r([$id_doc.'-'.$c2 => ['termnya sama' => [$term => pow(($nilainya - $dokumenList[$c2][$term]),2)]]]);
+					// print_r([$id_doc.'-'.$c2 => ['termnya sama' => [$term => pow(($nilainya - $dokumenList[$c2][$term]),2)]]]);
 					$temp += pow(($nilainya - $dokumenList[$c2][$term]),2);
 				}
 				// // kalau di doclist ada, di pusat tidak ada1
 				else if(!array_key_exists($term, $dokumenList[$c2])){
-					print_r([$id_doc.'-'.$c2 => ['doclist ada' => [$term => pow($nilainya,2)]]]);
+					// print_r([$id_doc.'-'.$c2 => ['doclist ada' => [$term => pow($nilainya,2)]]]);
 					$temp += pow($nilainya,2);
 				}
 			}
@@ -323,7 +360,7 @@ function hitung_euclidean_distance($tfidf, $kata, $debug=true){
 		// // kalau di pusat ada, di doclist tidak ada
 		foreach ($dokumenList[$c2] as $term1 => $value1) {
 			if(!array_key_exists($term1, $dokumenList[$id_doc])){
-				print_r([$id_doc.'-'.$c2 => ['pusat ada' => [$term1 => pow($dokumenList[$c2][$term1],2)]]]);
+				// print_r([$id_doc.'-'.$c2 => ['pusat ada' => [$term1 => pow($dokumenList[$c2][$term1],2)]]]);
 				$temp += pow($dokumenList[$c2][$term1],2);
 			}
 		}
@@ -341,19 +378,29 @@ function hitung_euclidean_distance($tfidf, $kata, $debug=true){
 		print_r(['dokumenList' => $dokumenList]);
 		print_r(['euclidean distance' => $euclidean_distance]);
 	}
-
-	return $euclidean_distance;
+	$hasil_euclid['distance'] = $euclidean_distance;
+	$hasil_euclid['dokumenList'] = $dokumenList;
+	return $hasil_euclid;
 }
 
 function means($index, $bobot){
-	$sum = 0;
-	$n = 0;
+	$n = count($index);
 	foreach($index as $key=>$value){
-		$sum += $bobot[$value];
-		$n++;
+		foreach ($bobot as $key1 => $value1) {
+			foreach ($value1 as $key2 => $value2) {
+				if($key1 == $value){
+					$sum[$key2] += $value2;
+				}
+				// print_r([$key2 => $value2]);
+			}
+		}
 	}
 
-	$means = ($n == 0) ? 1 : $sum / $n;
+	foreach ($sum as $key => $value) {
+		$means[$key] = ($n == 0) ? 1 : $value / $n;
+	}
+	// print_r($means);
+	// // $means = ($n == 0) ? 1 : $sum / $n;
 
 	return $means;
 }
