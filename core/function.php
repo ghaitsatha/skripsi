@@ -132,7 +132,7 @@ function single_process($s, $debug = false){
 
 			$c1_temp = $clusters["c1"];
 			$c2_temp = $clusters["c2"];
-			if ($debug == false){
+			if ($debug == true){
 				var_dump('---------- ITERASI KE '.$i.' -----------');
 				print_r([
 					'pusat1' => $pusat1,
@@ -173,11 +173,12 @@ function single_process($s, $debug = false){
 		// C2 = 1 atau bukan spam
 
 		if(in_array(0, $clusters["c1"])){
-			$final_sentiment = 'spam';
+			$final_sentiment = 'real';
 		}
 		else if(in_array(0, $clusters["c2"])){
-			$final_sentiment = 'bukan spam';
+			$final_sentiment = 'spam';
 		}
+		print_r(['c1' => $clusters["c1"], 'c2' => $clusters["c2"]]);
 
 		return $final_sentiment;
 

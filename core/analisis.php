@@ -288,7 +288,7 @@ function hitung_euclidean_distance($tfidf, $kata, $debug=false){
 	// menentukan dimana centroidnya
 	// sesuai contoh C1, C4
 	$c1 = 0;
-	$c2 = 3;
+	$c2 = 10;
 
 	// menentukan pusat di tfidf
 	$euclids = [];
@@ -385,6 +385,17 @@ function hitung_euclidean_distance($tfidf, $kata, $debug=false){
 
 function means($index, $bobot){
 	$n = count($index);
+	$sum = [];
+	foreach($index as $key=>$value){
+		foreach ($bobot as $key1 => $value1) {
+			foreach ($value1 as $key2 => $value2) {
+				if($key1 == $value){
+					$sum[$key2] = 0;
+				}
+				// print_r([$key2 => $value2]);
+			}
+		}
+	}
 	foreach($index as $key=>$value){
 		foreach ($bobot as $key1 => $value1) {
 			foreach ($value1 as $key2 => $value2) {
